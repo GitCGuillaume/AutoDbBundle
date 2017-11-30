@@ -1,0 +1,368 @@
+{% extends '@GuillaumeAutoDbBundle/Resources/views/BaseAutoDb.html.twig' %}
+{% block head %}
+    <head>
+        <meta charset="UTF-8" />
+        {% block title %}<title>Création attribut(s)</title>{% endblock %}
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+
+        {% block noscript %}<noscript>Javascript doit être activé pour permettre la finalisation de création des fichiers.</noscript>{% endblock %}
+
+        {% block js %}<script type="text/javascript">
+        //<![CDATA[
+		// .remove() ne fonctionne pas sur Internet explorer, une fonction est donc necessaire
+		if (!('remove' in Element.prototype)) {
+			Element.prototype.remove = function() {
+				if (this.parentNode) {
+					this.parentNode.removeChild(this);
+				}
+			};
+		}
+		
+		
+        //On créait un array pour mémoriser les selects crées avant l'actionnement de la fonction.
+        var createSelect = [];
+
+        function selectAssociation(event){
+            var listeLabel = []
+            var trouve = 0;
+            var i = 0;        
+            var x = event.target.value;
+
+            //On cherche si le select à créer n'existe pas déjà, si il existe alors le bool passe en true et ne peut donc être crée.
+            while(trouve == 0 && i <= createSelect.length){
+                if(createSelect[i] == event.target.nextSibling.name && typeof createSelect[i] !== "undefined"){
+                    trouve = 1;
+                }else{
+                    i++;
+                }
+            }
+
+            //On a besoin de la liste de label pour détecter qu'on clique bien sur le selectAssociation souhaité.
+            {% for label in entite %}
+                listeLabel.push("{{label}}");
+            {% endfor %}
+
+
+            //On obtient tous ce qui se trouve après le dernier x de la chaine.
+            var lastX = event.target.name,
+            chaine = lastX.substring(lastX.lastIndexOf('x')+1);
+
+            //On fait un for pour parcourir le tableau listeLabel
+            for(var k = 0; k < {{entite|length}}; k++){
+                //On créait un select uniquement si le select cliqué et autre que 'Aucune' et qu'il la cible ne doit pas existé.
+                if(x != "Aucune" && trouve != 1 && event.target.name == listeLabel[k]+"Association_x"+chaine){
+                
+                     var newSelectAssociation1 = form
+                        .insertBefore(document.createElement('select'), event.target.nextSibling);
+                    newSelectAssociation1
+                        .setAttribute("name", "referenced"+event.target.name);
+
+                     var newSelectAssociation2 = form
+                        .insertBefore(document.createElement('select'), event.target.nextSibling);
+                    newSelectAssociation2
+                        .setAttribute("name", "nameForeignKey"+event.target.name);
+
+                    var newSelectAssociation3 = form
+                        .insertBefore(document.createElement('select'), event.target.nextSibling);
+                    newSelectAssociation3
+                        .setAttribute("name", "choiceEntite"+event.target.name);
+
+                    for(var m = 0; m < listeReferenced.length; m++){
+                        var newOption = document.createElement('option')
+                        contenu1 = document.createTextNode(listeReferenced[m]);
+                        newOption.appendChild(contenu1);
+                        newSelectAssociation1.add(newOption);
+
+                        var newOption2 = document.createElement('option')
+                        contenu2 = document.createTextNode(listeNamePk[m]);
+                        newOption2.appendChild(contenu2);
+                        newSelectAssociation2.add(newOption2);
+                    }
+
+                    for(var l = 0; l < {{entite|length}}; l++){
+                        var newOption3 = document.createElement('option')
+                        contenu3 = document.createTextNode(listeLabel[l]);
+                        newOption3.appendChild(contenu3);
+                        newSelectAssociation3.add(newOption3);
+                    }
+                    
+                    //On enregistre le nom du select dans l'array pour le while
+                    createSelect.push(newSelectAssociation3.getAttribute("name"));
+
+                }else if(x == "Aucune" && trouve == 1 && event.target.name == listeLabel[k]+"Association_x"+chaine){
+                    //on créait une variable pour mémoriser l'élément à supprimer.
+                    var waitDelete = event.target.nextSibling;
+                    waitDelete.nextSibling.nextSibling.remove();
+                    waitDelete.nextSibling.remove();
+                    waitDelete.remove();
+                    
+                }
+            }
+        }
+
+        function createAssociation(event){
+            var listeLabel = [];
+
+            var listeCardinalite = ["Aucune","OneToMany", "ManyToOne", "ManyToMany","OneToOne"];
+            var listeMapping = ["Aucune", "1,n", "n,1", "n,n", "1,1"];
+            //Enregistrement des entites dans un array
+            {% for label in entite %}
+                listeLabel.push("{{label}}");
+            {% endfor %}
+
+            
+            for(var i = 0; i < {{entite|length}}; i++){
+                if(event.target.name == "buttonNewAssociation"+listeLabel[i]){
+                    var previousName = event.target.previousSibling.name;
+
+                    //On obtient les entiers
+                    var regex = /_x(\d*)/;
+                    var int = previousName.match(regex);
+                    var addition = parseInt(int[1]) + 1;
+
+                    var newBr = form.insertBefore(document.createElement("br"), event.target);
+
+                    var newSelectAssociation = form
+                        .insertBefore(document.createElement('select'), event.target);
+                    newSelectAssociation
+                        .setAttribute("name", listeLabel[i]+"Association_x"+addition);
+
+                    //Boucle pour ajouter la liste de cardinalités dans le select
+                    for(var k = 0; k < listeCardinalite.length; k++){
+                        var newOption = document.createElement('option')
+                        contenu = document.createTextNode(listeCardinalite[k]);
+                        newOption.appendChild(contenu);
+                        newOption.value = listeMapping[k];
+                        newSelectAssociation.add(newOption);
+                    }
+                }
+            } 
+        }
+
+        //listeInput permet le chargement des primary keys et foreign keys dans le select
+        listeReferenced = ["ReferencedColumnName"];
+        listeNamePk = ["NameForeignKey"];
+        {% for label in entite %}
+            listeReferenced.push("{{label}}_x0");
+            listeNamePk.push("{{label}}_x0");
+        {% endfor %}
+        function createInput(event){
+            var listeLabel = [];
+            var listeType = ["integer", "string", "text", "boolean"];
+
+
+            //Enregistrement des entites dans un array
+            {% for label in entite %}
+                listeLabel.push("{{label}}");
+            {% endfor %}
+
+            for(var i = 0; i < {{entite|length}}; i++){
+                if(event.target.name == "button"+listeLabel[i]){
+                    var previousName = event.target.previousSibling.value;
+                    //On obtient les entiers
+                    var regex = /_x(\d*)/;
+                    var int = previousName.match(regex);
+                    var addition = parseInt(int[1]) + 1;
+
+                    var newBr = form.insertBefore(document.createElement("br"), event.target);
+
+                    var newInput = form.insertBefore(document.createElement("input"), event.target);
+                    var liste = listeLabel[i]+"_x"+addition;
+                    newInput.setAttribute("name", listeLabel[i]+"_x"+addition);
+                    newInput.setAttribute("type", "text");
+
+
+                    var newSelectAssociation = form
+                        .insertBefore(document.createElement('select'), event.target);
+                    newSelectAssociation
+                        .setAttribute("name", listeLabel[i]+"Type_x"+addition);
+
+                    for(var j = 0; j < listeType.length; j++){
+                        var newOption = document.createElement('option')
+                        contenu = document.createTextNode(listeType[j]);
+                        newOption.appendChild(contenu);
+                        newSelectAssociation.add(newOption);
+                    }
+
+                    var newCheckBoxAt = form.insertBefore(document.createElement("input"), event.target);
+                    newCheckBoxAt.setAttribute("name", "aT"+listeLabel[i]+"_x"+addition);
+                    newCheckBoxAt.setAttribute("type", "checkbox");
+
+                    var newLabel0 = form.insertBefore(document.createElement("label"), event.target);
+                    newLabel0.appendChild(document.createTextNode("Auto increment"));
+
+                    var newCheckBoxPk = form.insertBefore(document.createElement("input"), event.target);
+                    newCheckBoxPk.setAttribute("name", "pK"+listeLabel[i]+"_x"+addition);
+                    newCheckBoxPk.setAttribute("type", "checkbox");
+
+                    var newLabel1 = form.insertBefore(document.createElement("label"), event.target);
+                    newLabel1.appendChild(document.createTextNode("Primary Key"));
+
+                    var newCheckBoxNull = form.insertBefore(document.createElement("input"), event.target);
+                    newCheckBoxNull.setAttribute("name", "nL"+listeLabel[i]+"_x"+addition);
+                    newCheckBoxNull.setAttribute("type", "checkbox");
+
+                    var newLabel2 = form.insertBefore(document.createElement("label"), event.target);
+                    newLabel2.appendChild(document.createTextNode("Null"));
+
+                    var newHidden = form.insertBefore(document.createElement("input"), event.target);
+                    newHidden.setAttribute("name", listeLabel[i]+"Hidden_x"+addition);
+                    newHidden.setAttribute("value", listeLabel[i]+"_x"+addition)
+                    newHidden.setAttribute("type", "hidden");
+
+                    listeReferenced.push(liste);
+                    listeNamePk.push(liste);
+                }
+            }
+        }
+        function selectType(event){
+            var listeLabel = [];
+            var listeType = ["integer", "string", "text", "boolean"];
+            //Pour obtenir la valeur de l'option select
+            var x = event.target.value;
+
+            //Enregistrement des entites dans un array
+            {% for label in entite %}
+                listeLabel.push("{{label}}");
+            {% endfor %}
+
+            //On obtient tous ce qui se trouve après le dernier x de la chaine.
+            var lastX = event.target.name,
+            chaine = lastX.substring(lastX.lastIndexOf('x')+1);
+
+            //On fait un for pour parcourir le tableau listeType
+            for(var i = 0; i < {{entite|length}}; i++){
+                for(var j = 0; j < listeType.length;j++){
+                    //On créait un select uniquement si le select cliqué et autre que 'Aucune' et qu'il la cible ne doit pas existé.
+                    if(x == "string" && event.target.name == listeLabel[i]+"Type_x"+chaine){
+                        switch(j){
+                            case 2:
+                                var newInput = form.insertBefore(document.createElement("input"), event.target.nextSibling);
+                                newInput.setAttribute("name", "string"+event.target.name);
+                                newInput.setAttribute("type", "text");
+                                newInput.placeholder = "Length";
+                        }
+                    }
+                    if(x == "integer" && event.target.name == listeLabel[i]+"Type_x"+chaine){
+                        switch(j){
+                            case 2:
+                                var newLabel = form.insertBefore(document.createElement("label"), event.target.nextSibling);
+                                newLabel.appendChild(document.createTextNode(" Auto increment"));
+
+                                var newInput = form.insertBefore(document.createElement("input"), event.target.nextSibling);
+                                newInput.setAttribute("name", "aT"+listeLabel[i]+"_x"+chaine);
+                                newInput.setAttribute("type", "checkbox");
+                        }
+                    }
+                    if(x == "boolean" && event.target.name == listeLabel[i]+"Type_x"+chaine){
+                        switch(j){
+                            case 2:
+                                var newLabel = form.insertBefore(document.createElement("label"), event.target.nextSibling);
+                                newLabel.appendChild(document.createTextNode(" is True"));
+
+                                var newInput = form.insertBefore(document.createElement("input"), event.target.nextSibling);
+                                newInput.setAttribute("name", "bL"+listeLabel[i]+"_x"+chaine);
+                                newInput.setAttribute("type", "checkbox");
+                        }
+                    }
+                    
+                    if(x != "string" && event.target.nextSibling.name == "string"+listeLabel[i]+"Type_x"+chaine){
+                        //on créait une variable pour mémoriser l'élément à supprimer.
+                        var waitDelete = event.target.nextSibling;
+                        waitDelete.remove();
+                    }
+                    if(x != "integer" && event.target.nextSibling.name == "aT"+listeLabel[i]+"_x"+chaine){
+                        //on créait une variable pour mémoriser l'élément à supprimer.
+                        var waitDelete = event.target.nextSibling;
+                        waitDelete.nextSibling.remove();
+                        waitDelete.remove();
+                    }
+                    if(x != "boolean" && event.target.nextSibling.name == "bL"+listeLabel[i]+"_x"+chaine){
+                        //on créait une variable pour mémoriser l'élément à supprimer.
+                        var waitDelete = event.target.nextSibling;
+                        waitDelete.nextSibling.remove();
+                        waitDelete.remove();
+                    }
+                }
+            }            
+        }
+
+        function createDirectory(event){
+            if(event.target.name == "isDirectory" && event.target.checked && event.target.previousSibling.name != "directoryName"){
+                var newBr = form.insertBefore(document.createElement("br"), event.target);
+                var newLabel = form.insertBefore(document.createElement("label"), event.target);
+                newLabel.appendChild(document.createTextNode("Nom de l'annuaire : "));
+                var newInput = form.insertBefore(document.createElement("input"), event.target);
+                newInput.setAttribute("name", "directoryName");
+                newInput.setAttribute("type", "text");
+            }if(event.target.name == "isDirectory" && event.target.checked == false && event.target.previousSibling.name == "directoryName"){
+                //on créait une variable pour mémoriser l'élément à supprimer.
+                var waitDelete = event.target.previousSibling;
+                waitDelete.previousSibling.remove();
+                waitDelete.previousSibling.remove();
+                waitDelete.remove();
+            }
+        }
+
+        if(window.addEventListener){
+            window.addEventListener('change', selectAssociation, false);
+            window.addEventListener('click', createAssociation, false);
+            window.addEventListener('click', createInput, false);
+            window.addEventListener('change', selectType, false);
+            window.addEventListener('click', createDirectory, false);
+        }
+        else
+        {
+            window.attachEvent('onchange', selectAssociation);
+            window.attachEvent('onclick', createAssociation);
+            window.attachEvent('onclick', createInput);
+            window.attachEvent('onchange', selectType);
+            window.attachEvent('onclick', createDirectory);
+        }
+
+
+        //]]>
+        </script>{% endblock %}
+    </head>
+{% endblock %}
+{% block body %}
+    <section>
+    <h1>Création des attributs</h1>
+            <div class="alert alert-info" role="alert">Cette version alpha fonctionne uniquement avec des associations unidirectionnelles.</div>
+            <div class="alert alert-info" role="alert"><u>Pour être en concordance avec Doctrine, les clés primaires doivent avoir pour nommage : id.</u></div>
+            
+            {% for message in app.session.flashBag.get('error') %}
+                <div class="alert alert-error">
+                    {{ message }}
+                </div>
+            {% endfor %}
+
+            <article>
+            <form name="form" method="post" action="{{path('guillaume_auto_db_getEntity')}}">
+                {% for val in entite %}
+                    <h2>{{val}}</h2>
+                    <input name="{{val}}_x0" type="text" value="id"><select name="{{val}}Type_x0">
+                        <option value="integer" selected>integer</option>
+                        <option value="string">string</option>
+                        <option value="text">text</option>
+                        <option value="boolean">boolean</option>
+                    </select><input name="aT{{val}}_x0" type="checkbox" value="null" checked><label>Auto increment </label><input name="pK{{val}}_x0" type="checkbox" value="null" checked><label>Primary Key</label><input name="nL{{val}}_x0" type="checkbox" value="null"><label>Null</label><input name="{{val}}Hidden_x0" type="hidden" value="{{val}}_x0"><input name="button{{val}}" type="button" value="+"/><br>
+                    <select name="{{val}}Association_x0">
+                      <option value="Aucune" selected>Aucune</option>
+                      <option value="1,n">OneToMany</option>
+                      <option value="n,1">ManyToOne</option>
+                      <option value="n,n">ManyToMany</option>
+                      <option value="1,1">OneToOne</option>
+                    </select><input name="buttonNewAssociation{{val}}" type="button" value="Nouvelle association">
+                    <br>
+            {% endfor %}
+            <label>Nom du bundle : </label>
+            <input name="bundleName" type="text"><input name="isDirectory" type="checkbox" value="null"><label>Annuaire ?</label>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('token_id') }}">
+
+            <br><input type="submit" name="submit" value="Enregistrer">
+
+            </form>
+        </article>
+    </section>
+{% endblock %}

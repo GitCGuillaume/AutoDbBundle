@@ -1,0 +1,20 @@
+{% extends '@GuillaumeAutoDbBundle/Resources/views/BaseAutoDb.html.twig' %}
+
+{% block title %}<title>Téléchargements des entités</title>{% endblock %}
+
+{% block body %}
+
+    <section>
+	<h1>Téléchargement des entités</h1>
+    <div class="alert alert-info" role="alert">Des changements de droits pourraient être nécessaire pour lire et exécuter les différents fichiers.</div>
+    	
+        {% for message in app.session.flashBag.get('error') %}
+            <div class="alert alert-error">
+                {{ message }}
+            </div>
+        {% endfor %}
+        <article>
+            <a href="{{ zip }}" target="_blank">Télécharger archive Zip</a>
+        </article>
+    </section>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends '@GuillaumeAutoDbBundle/Resources/views/BaseAutoDb.html.twig' %}
+
+{% block title %}<title>Nommage entité(s)</title>{% endblock %}
+
+{% block body %}
+
+    <section>
+	<h1>Choix du nommage des entités</h1>
+	
+    {% for message in app.session.flashBag.get('error') %}
+        <div class="alert alert-error">
+            {{ message }}
+        </div>
+    {% endfor %}
+    
+        <article>
+        	{{form_start(form)}}
+	        	{% for val in  form|keys %}
+			        {% if not form._token %}
+			        	{{ form_label(attribute(form, val)) }}
+	        			{{ form_widget(attribute(form, val)) }}
+	        			</br>
+	        		{% endif %}
+	        	{% endfor %}
+        	{{form_end(form)}}
+        </article>
+    </section>
+{% endblock %}

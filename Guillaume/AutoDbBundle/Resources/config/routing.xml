@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<routes xmlns="http://symfony.com/schema/routing"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+
+    <route id="guillaume_auto_db_homepage" path="/autodb_p1">
+        <default key="_controller">GuillaumeAutoDbBundle:BeforeAutomating:Index</default>
+    </route>
+    <route id="guillaume_auto_db_entite" path="/autodb_p2">
+        <default key="_controller">GuillaumeAutoDbBundle:BeforeAutomating:Entite</default>
+    </route>
+    <route id="guillaume_auto_db_attribut" path="/autodb_p3">
+        <default key="_controller">GuillaumeAutoDbBundle:BeforeAutomating:Attribut</default>
+    </route>
+    <route id="guillaume_auto_db_getEntity" path="/autodb_p4">
+        <default key="_controller">GuillaumeAutoDbBundle:Automating:GetEntity</default>
+    </route>
+    <route id="guillaume_auto_db_uploadEntity" path="/autodb_p5">
+        <default key="_controller">GuillaumeAutoDbBundle:Automating:UploadEntity</default>
+    </route>
+</routes>
