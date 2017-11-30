@@ -98,18 +98,6 @@ class AutomatingController extends Controller{
 			        );
 			        return $this->redirectToRoute('guillaume_auto_db_attribut');
 				}
-				/*
-				$res = $zip->open($zipExist, \ZipArchive::ER_EXISTS);
-				
-				if($res === 10){
-					$this->get('session')->getFlashBag()->clear();
-			        $this->addFlash(
-			            'error',
-			            "autoDb.zip existe déjà, pour créer une nouvelle archive, renommez ou supprimez celle déjà existante.
-			            Emplacement : $zipExist"
-			        );
-			        return $this->redirectToRoute('guillaume_auto_db_attribut');
-				}*/
 				$zipCreate = $zip->open($zipPath, \ZipArchive::CREATE);
 				for($j = 0; $j < count($listeNomEntite); $j++){
 					//$construct enregistre chaque attribut ayant une association
@@ -371,7 +359,6 @@ class '.$listeNomEntite[$j].'
 	 */
 	private $'.$setAssociation[$m+1].';
 							');
-								//array_push($construct, $setAssociation[$m+1]);
 							}
 						}
 						break;
